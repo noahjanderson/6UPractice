@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚾ 6U All Team Clinic</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --grass: #2d7a1f;
+    --grass-light: #3a9e28;
+    --dirt: #c9874a;
+    --dirt-light: #e0a46a;
+    --sky: #1a6fa8;
+    --sky-light: #2e8fd4;
+    --chalk: #f5f0e8;
+    --yellow: #f5c842;
+    --red: #e03030;
+    --white: #fff;
+    --shadow: rgba(0,0,0,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--grass);
+    min-height: 100vh;
+    padding: 16px;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 60px, transparent 60px, transparent 120px),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 60px, transparent 60px, transparent 120px);
+  }
+
+  header {
+    text-align: center;
+    padding: 18px 12px 10px;
+    animation: dropIn 0.6s cubic-bezier(.22,1,.36,1) both;
+  }
+
+  header h1 {
+    font-family: 'Boogaloo', cursive;
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    color: var(--yellow);
+    text-shadow: 3px 3px 0 #a07800, 0 0 30px rgba(245,200,66,0.4);
+    letter-spacing: 2px;
+  }
+
+  header p {
+    color: rgba(255,255,255,0.85);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-top: 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .scoreboard {
+    background: #1a1a1a;
+    border: 4px solid var(--yellow);
+    border-radius: 14px;
+    max-width: 700px;
+    margin: 12px auto 20px;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+    animation: dropIn 0.7s cubic-bezier(.22,1,.36,1) 0.1s both;
+  }
+
+  .score-item {
+    text-align: center;
+  }
+
+  .score-label {
+    font-size: 0.65rem;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 800;
+  }
+
+  .score-value {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.8rem;
+    color: var(--yellow);
+    line-height: 1.1;
+  }
+
+  .score-value.green { color: #5cdb5c; }
+  .score-value.red { color: #ff6b6b; }
+
+  .divider { width: 2px; height: 40px; background: #333; }
+
+  /* Timeline */
+  .timeline {
+    max-width: 700px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .block {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px var(--shadow);
+    cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s;
+    animation: slideUp 0.5s cubic-bezier(.22,1,.36,1) both;
+  }
+
+  .block:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+
+  .block-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    position: relative;
+  }
+
+  .block-emoji { font-size: 2rem; flex-shrink: 0; }
+
+  .block-title {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.3rem;
+    color: var(--white);
+    line-height: 1.1;
+  }
+
+  .block-time {
+    margin-left: auto;
+    background: rgba(0,0,0,0.25);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: rgba(255,255,255,0.9);
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  .block-body {
+    display: none;
+    padding: 0 18px 16px;
+  }
+
+  .block.open .block-body { display: block; }
+
+  .block-chevron {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.6);
+    transition: transform 0.25s;
+  }
+  .block.open .block-chevron { transform: translateY(-50%) rotate(180deg); }
+
+  /* Colors per block type */
+  .warmup { background: linear-gradient(135deg, #1a6fa8, #2e8fd4); }
+  .break-block { background: linear-gradient(135deg, #5ba85b, #2d7a1f); }
+  .fielding { background: linear-gradient(135deg, #c9874a, #a05f2a); }
+  .batting { background: linear-gradient(135deg, #b03030, #e03030); }
+  .relay { background: linear-gradient(135deg, #7b3f9e, #a862d4); }
+
+  /* Stations */
+  .stations { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+
+  .station {
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 12px 14px;
+    border-left: 4px solid var(--yellow);
+  }
+
+  .station-title {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--yellow);
+    margin-bottom: 4px;
+  }
+
+  .station ul { padding-left: 18px; }
+  .station li {
+    color: rgba(255,255,255,0.92);
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  /* Warmup list */
+  .warmup-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .tag {
+    background: rgba(0,0,0,0.2);
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 5px 14px;
+    color: white;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  /* Timer */
+  .timer-section {
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 14px;
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .timer-display {
+    font-family: 'Boogaloo', cursive;
+    font-size: 3rem;
+    color: var(--yellow);
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(245,200,66,0.5);
+    letter-spacing: 2px;
+  }
+
+  .timer-display.running { animation: pulse 1s infinite; }
+  .timer-display.urgent { color: #ff6b6b; text-shadow: 0 0 20px rgba(255,100,100,0.7); }
+
+  .timer-label {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .timer-btns {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.1s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn:active { transform: scale(0.95); }
+  .btn-start { background: var(--yellow); color: #1a1a1a; }
+  .btn-pause { background: #555; color: white; }
+  .btn-reset { background: rgba(255,255,255,0.15); color: white; border: 2px solid rgba(255,255,255,0.3); }
+  .btn-preset { background: rgba(255,255,255,0.12); color: white; font-size: 0.75rem; padding: 6px 12px; border: 1.5px solid rgba(255,255,255,0.2); }
+
+  /* Complete toggle */
+  .complete-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    background: rgba(0,0,0,0.2);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 30px;
+    padding: 8px 16px;
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .complete-btn.done {
+    background: rgba(92,219,92,0.25);
+    border-color: #5cdb5c;
+    color: #5cdb5c;
+  }
+
+  .check-circle {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2.5px solid currentColor;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+  }
+
+  .complete-btn.done .check-circle { background: #5cdb5c; color: white; border-color: #5cdb5c; }
+
+  /* Break block special */
+  .break-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255,255,255,0.9);
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-top: 6px;
+  }
+
+  /* Relay race */
+  .relay-content {
+    color: rgba(255,255,255,0.92);
+    font-size: 0.9rem;
+    margin-top: 8px;
+    line-height: 1.7;
+  }
+
+  /* Progress bar at top */
+  .progress-wrap {
+    max-width: 700px;
+    margin: 0 auto 14px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 20px;
+    height: 12px;
+    overflow: hidden;
+    animation: dropIn 0.6s both 0.2s;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--yellow), #ffaa00);
+    border-radius: 20px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(245,200,66,0.6);
+  }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    pointer-events: none;
+    animation: confettiFall linear forwards;
+    z-index: 9999;
+  }
+
+  /* Animations */
+  @keyframes dropIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  .block:nth-child(1) { animation-delay: 0.05s; }
+  .block:nth-child(2) { animation-delay: 0.1s; }
+  .block:nth-child(3) { animation-delay: 0.15s; }
+  .block:nth-child(4) { animation-delay: 0.2s; }
+  .block:nth-child(5) { animation-delay: 0.25s; }
+  .block:nth-child(6) { animation-delay: 0.3s; }
+  .block:nth-child(7) { animation-delay: 0.35s; }
+
+  .expand-all-btn {
+    display: block;
+    margin: 0 auto 14px;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.25);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 7px 22px;
+    border-radius: 20px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s;
+    animation: dropIn 0.6s both 0.3s;
+  }
+  .expand-all-btn:hover { background: rgba(255,255,255,0.22); }
+
+  .all-done-banner {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5c842, #ffaa00);
+    border-radius: 16px;
+    max-width: 700px;
+    margin: 20px auto 0;
+    box-shadow: 0 4px 24px rgba(245,200,66,0.4);
+  }
+  .all-done-banner h2 {
+    font-family: 'Boogaloo', cursive;
+    font-size: 2rem;
+    color: #1a1a1a;
+  }
+  .all-done-banner p { color: #333; font-weight: 700; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚾ 6U All Team Clinic</h1>
+  <p>Practice Dashboard · Coaches Edition</p>
+</header>
+
+<div class="scoreboard">
+  <div class="score-item">
+    <div class="score-label">Completed</div>
+    <div class="score-value green" id="completed-count">0</div>
+  </div>
+  <div class="divider"></div>
+  <div class="score-item">
+    <div class="score-label">Remaining</div>
+    <div class="score-value red" id="remaining-count">7</div>
+  </div>
+  <div class="divider"></div>
+  <div class="score-item">
+    <div class="score-label">Total Time</div>
+    <div class="score-value">2 hrs</div>
+  </div>
+  <div class="divider"></div>
+  <div class="score-item">
+    <div class="score-label">Progress</div>
+    <div class="score-value" id="pct-text">0%</div>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+</div>
+
+<button class="expand-all-btn" onclick="expandAll()">📋 Expand All Sections</button>
+
+<div class="timeline" id="timeline">
+
+  <!-- WARMUP -->
+  <div class="block warmup" id="block-0" onclick="toggleBlock(0)">
+    <div class="block-header">
+      <span class="block-emoji">🏃</span>
+      <div>
+        <div class="block-title">Warmups</div>
+      </div>
+      <span class="block-time">4:30 – 4:50 · 20 min</span>
+      <span class="block-chevron">▼</span>
+    </div>
+    <div class="block-body">
+      <div class="warmup-list">
+        <span class="tag">🏏 Coach Grounders</span>
+        <span class="tag">🤸 Dynamic Stretches</span>
+        <span class="tag">🦵 High Knees</span>
+        <span class="tag">🍑 Butt Kickers</span>
+        <span class="tag">⛸️ Skips</span>
+        <span class="tag">↔️ Side Shuffles</span>
+      </div>
+      <div class="timer-section">
+        <div class="timer-label">⏱ Countdown Timer</div>
+        <div class="timer-display" id="timer-0">20:00</div>
+        <div class="timer-btns">
+          <button class="btn btn-preset" onclick="setTimer(0, 20*60, event)">20 min</button>
+          <button class="btn btn-start" onclick="startTimer(0, event)">▶ Start</button>
+          <button class="btn btn-pause" onclick="pauseTimer(0, event)">⏸ Pause</button>
+          <button class="btn btn-reset" onclick="resetTimer(0, 20*60, event)">↺ Reset</button>
+        </div>
+      </div>
+      <button class="complete-btn" id="complete-0" onclick="markDone(0, event)">
+        <span class="check-circle">✓</span> Mark as Complete
+      </button>
+    </div>
+  </div>
+
+  <!-- WATER BREAK 1 -->
+  <div class="block break-block" id="block-1" onclick="toggleBlock(1)">
+    <div class="block-header">
+      <span class="block-emoji">💧</span>
+      <div>
+        <div class="block-title">Water Break</div>
+      </div>
+      <span class="block-time">4:55 · 5 min</span>
+      <span class="block-chevron">▼</span>
+    </div>
+    <div class="block-body">
+      <div class="break-content">🚰 Hydration time! Get everyone a quick drink before fielding drills.</div>
+      <div class="timer-section">
+        <div class="timer-label">⏱ Countdown Timer</div>
+        <div class="timer-display" id="timer-1">05:00</div>
+        <div class="timer-btns">
+          <button class="btn btn-start" onclick="startTimer(1, event)">▶ Start</button>
+          <button class="btn btn-pause" onclick="pauseTimer(1, event)">⏸ Pause</button>
+          <button class="btn btn-reset" onclick="resetTimer(1, 5*60, event)">↺ Reset</button>
+        </div>
+      </div>
+      <button class="complete-btn" id="complete-1" onclick="markDone(1, event)">
+        <span class="check-circle">✓</span> Mark as Complete
+      </button>
+    </div>
+  </div>
+
+  <!-- FIELDING -->
+  <div class="block fielding" id="block-2" onclick="toggleBlock(2)">
+    <div class="block-header">
+      <span class="block-emoji">🧤</span>
+      <div>
+        <div class="block-title">Fielding Drills</div>
+      </div>
+      <span class="block-time">5:00 – 5:25 · 3 Stations × 8 min</span>
+      <span class="block-chevron">▼</span>
+    </div>
+    <div class="block-body">
+      <div class="stations">
+        <div class="station">
+          <div class="station-title">⛰️ Station 1 — Mound: Speed Fielding</div>
+          <ul>
+            <li>Charge ground balls, throw to backstop in quick rotation</li>
+            <li>Start from <strong>seated position facing center field</strong>, charge & throw to backstop</li>
+          </ul>
+        </div>
+        <div class="station">
+          <div class="station-title">🔁 Station 2 — 1B / 2B: Catch & Throw</div>
+          <ul>
+            <li>Player starts at 2B, fields grounder, throws to 1B</li>
+            <li>Player at 2B rotates to 1B after each throw</li>
+          </ul>
+        </div>
+        <div class="station">
+          <div class="station-title">☁️ Station 3 — Outfield: Pop-Ups</div>
+          <ul>
+            <li>Players toss ball straight up to themselves and catch it</li>
+            <li>Goal: learn to toss straight up, not forward</li>
+          </ul>
+        </div>
+      </div>
+      <div class="timer-section">
+        <div class="timer-label">⏱ Station Timer</div>
+        <div class="timer-display" id="timer-2">08:00</div>
+        <div class="timer-btns">
+          <button class="btn btn-preset" onclick="setTimer(2, 8*60, event)">8 min</button>
+          <button class="btn btn-start" onclick="startTimer(2, event)">▶ Start</button>
+          <button class="btn btn-pause" onclick="pauseTimer(2, event)">⏸ Pause</button>
+          <button class="btn btn-reset" onclick="resetTimer(2, 8*60, event)">↺ Reset</button>
+        </div>
+      </div>
+      <button class="complete-btn" id="complete-2" onclick="markDone(2, event)">
+        <span class="check-circle">✓</span> Mark as Complete
+      </button>
+    </div>
+  </div>
+
+  <!-- WATER BREAK 2 -->
+  <div class="block break-block" id="block-3" onclick="toggleBlock(3)">
+    <div class="block-header">
+      <span class="block-emoji">💧</span>
+      <div>
+        <div class="block-title">Water Break</div>
+      </div>
+      <span class="block-time">5:30 · 5 min</span>
+      <span class="block-chevron">▼</span>
+    </div>
+    <div class="block-body">
+      <div class="break-content">🚰 Second water break — transition to batting stations after this!</div>
+      <div class="timer-section">
+        <div class="timer-label">⏱ Countdown Timer</div>
+        <div class="timer-display" id="timer-3">05:00</div>
+        <div class="timer-btns">
+          <button class="btn btn-start" onclick="startTimer(3, event)">▶ Start</button>
+          <button class="btn btn-pause" onclick="pauseTimer(3, event)">⏸ Pause</button>
+          <button class="btn btn-reset" onclick="resetTimer(3, 5*60, event)">↺ Reset</button>
+        </div>
+      </div>
+      <button class="complete-btn" id="complete-3" onclick="markDone(3, event)">
+        <span class="check-circle">✓</span> Mark as Complete
+      </button>
+    </div>
+  </div>
+
+  <!-- BATTING -->
+  <div class="block batting" id="block-4" onclick="toggleBlock(4)">
+    <div class="block-header">
+      <span class="block-emoji">🏏</span>
+      <div>
+        <div class="block-title">Batting Drills</div>
+      </div>
+      <span class="block-time">5:35 – 6:15 · 3 Stations × 10 balls</span>
+      <span class="block-chevron">▼</span>
+    </div>
+    <div class="block-body">
+      <div class="stations">
+        <div class="station">
+          <div class="station-title">⚾ Station 1 — Coach Pitch to Plate</div>
+          <ul><li>Coach pitches live to batter at home plate · 10 balls each</li></ul>
+        </div>
+        <div class="station">
+          <div class="station-title">🎯 Station 2 — Tee into Net</div>
+          <ul><li>Batter hits off tee into the net · 10 swings each</li></ul>
+        </div>
+        <div class="station">
+          <div class="station-title">🌀 Station 3 — Whiffle Balls (Field #2)</div>
+          <ul><li>Use whiffle balls for extra fun reps · 10 swings each</li></ul>
+        </div>
+      </div>
+      <div class="timer-section">
+        <div class="timer-label">⏱ Station Timer</div>
+        <div class="timer-display" id="timer-4">10:00</div>
+        <div class="timer-btns">
+          <button class="btn btn-preset" onclick="setTimer(4, 10*60, event)">10 min</button>
+          <button class="btn btn-start" onclick="startTimer(4, event)">▶ Start</button>
+          <button class="btn btn-pause" onclick="pauseTimer(4, event)">⏸ Pause</button>
+          <button class="btn btn-reset" onclick="resetTimer(4, 10*60, event)">↺ Reset</button>
+        </div>
+      </div>
+      <button class="complete-btn" id="complete-4" onclick="markDone(4, event)">
+        <span class="check-circle">✓</span> Mark as Complete
+      </button>
+    </div>
+  </div>
+
+  <!-- RELAY RACE -->
+  <div class="block relay" id="block-5" onclick="toggleBlock(5)">
+    <div class="block-header">
+      <span class="block-emoji">🏅</span>
+      <div>
+        <div class="block-title">Relay Race!</div>
+      </div>
+      <span class="block-time">6:15 – 6:30 · 15 min</span>
+      <span class="block-chevron">▼</span>
+    </div>
+    <div class="block-body">
+      <div class="relay-content">
+        🎉 <strong>Fun finish to wrap up practice!</strong> Split the team into groups and run relay races. Great way to burn remaining energy and celebrate the hard work today.
+      </div>
+      <div class="timer-section">
+        <div class="timer-label">⏱ Countdown Timer</div>
+        <div class="timer-display" id="timer-5">15:00</div>
+        <div class="timer-btns">
+          <button class="btn btn-preset" onclick="setTimer(5, 15*60, event)">15 min</button>
+          <button class="btn btn-start" onclick="startTimer(5, event)">▶ Start</button>
+          <button class="btn btn-pause" onclick="pauseTimer(5, event)">⏸ Pause</button>
+          <button class="btn btn-reset" onclick="resetTimer(5, 15*60, event)">↺ Reset</button>
+        </div>
+      </div>
+      <button class="complete-btn" id="complete-5" onclick="markDone(5, event)">
+        <span class="check-circle">✓</span> Mark as Complete
+      </button>
+    </div>
+  </div>
+
+</div><!-- end timeline -->
+
+<div class="all-done-banner" id="all-done-banner">
+  <h2>🏆 Practice Complete!</h2>
+  <p>Great work, coaches & players! See you next time! ⚾</p>
+</div>
+
+<div style="height: 40px;"></div>
+
+<script>
+  const TOTAL_BLOCKS = 6;
+  const completed = new Array(TOTAL_BLOCKS).fill(false);
+  const timers = {};
+  const defaultTimes = [20*60, 5*60, 8*60, 5*60, 10*60, 15*60];
+
+  function toggleBlock(i) {
+    const block = document.getElementById('block-' + i);
+    block.classList.toggle('open');
+  }
+
+  function expandAll() {
+    for (let i = 0; i < TOTAL_BLOCKS; i++) {
+      document.getElementById('block-' + i).classList.add('open');
+    }
+  }
+
+  function markDone(i, e) {
+    e.stopPropagation();
+    completed[i] = !completed[i];
+    const btn = document.getElementById('complete-' + i);
+    btn.classList.toggle('done', completed[i]);
+    btn.querySelector('.check-circle').textContent = completed[i] ? '✓' : '✓';
+    btn.childNodes[1].textContent = completed[i] ? ' Done! ✅' : ' Mark as Complete';
+    updateScore();
+    if (completed[i]) launchConfetti();
+    if (completed.every(Boolean)) {
+      document.getElementById('all-done-banner').style.display = 'block';
+      launchConfetti(60);
+    } else {
+      document.getElementById('all-done-banner').style.display = 'none';
+    }
+  }
+
+  function updateScore() {
+    const done = completed.filter(Boolean).length;
+    const rem = TOTAL_BLOCKS - done;
+    const pct = Math.round((done / TOTAL_BLOCKS) * 100);
+    document.getElementById('completed-count').textContent = done;
+    document.getElementById('remaining-count').textContent = rem;
+    document.getElementById('pct-text').textContent = pct + '%';
+    document.getElementById('progress-bar').style.width = pct + '%';
+  }
+
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, '0');
+    const s = (sec % 60).toString().padStart(2, '0');
+    return m + ':' + s;
+  }
+
+  function startTimer(i, e) {
+    if (e) e.stopPropagation();
+    if (timers[i] && timers[i].running) return;
+    if (!timers[i]) timers[i] = { remaining: defaultTimes[i], running: false };
+    timers[i].running = true;
+    const el = document.getElementById('timer-' + i);
+    el.classList.add('running');
+    timers[i].interval = setInterval(() => {
+      timers[i].remaining--;
+      el.textContent = formatTime(timers[i].remaining);
+      if (timers[i].remaining <= 10) el.classList.add('urgent');
+      if (timers[i].remaining <= 0) {
+        clearInterval(timers[i].interval);
+        timers[i].running = false;
+        el.classList.remove('running');
+        el.textContent = '00:00';
+        // buzz sound via AudioContext
+        beep();
+      }
+    }, 1000);
+  }
+
+  function pauseTimer(i, e) {
+    if (e) e.stopPropagation();
+    if (timers[i]) {
+      clearInterval(timers[i].interval);
+      timers[i].running = false;
+      document.getElementById('timer-' + i).classList.remove('running');
+    }
+  }
+
+  function resetTimer(i, sec, e) {
+    if (e) e.stopPropagation();
+    if (timers[i]) {
+      clearInterval(timers[i].interval);
+      timers[i].running = false;
+    }
+    timers[i] = { remaining: sec, running: false };
+    const el = document.getElementById('timer-' + i);
+    el.textContent = formatTime(sec);
+    el.classList.remove('running', 'urgent');
+  }
+
+  function setTimer(i, sec, e) {
+    if (e) e.stopPropagation();
+    resetTimer(i, sec, null);
+  }
+
+  function beep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.2, 0.4].forEach(t => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.3, ctx.currentTime + t);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.15);
+        osc.start(ctx.currentTime + t);
+        osc.stop(ctx.currentTime + t + 0.15);
+      });
+    } catch(e) {}
+  }
+
+  function launchConfetti(count = 30) {
+    const colors = ['#f5c842','#e03030','#2e8fd4','#5cdb5c','#a862d4','#fff'];
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.cssText = `
+          left: ${Math.random() * 100}vw;
+          top: -10px;
+          background: ${colors[Math.floor(Math.random()*colors.length)]};
+          width: ${6+Math.random()*8}px;
+          height: ${6+Math.random()*8}px;
+          animation-duration: ${1.5+Math.random()*2}s;
+          animation-delay: ${Math.random()*0.5}s;
+          border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        `;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3500);
+      }, i * 30);
+    }
+  }
+</script>
+</body>
+</html>
